@@ -1,108 +1,156 @@
-def evaluate_position(board):
-    # Define the winning rows, columns, and diagonals
-    winning_combinations = [
-        [(0, 0), (0, 1), (0, 2), (0, 3)],
-        [(1, 0), (1, 1), (1, 2), (1, 3)],
-        [(2, 0), (2, 1), (2, 2), (2, 3)],
-        [(3, 0), (3, 1), (3, 2), (3, 3)],
-        [(0, 0), (1, 0), (2, 0), (3, 0)],
-        [(0, 1), (1, 1), (2, 1), (3, 1)],
-        [(0, 2), (1, 2), (2, 2), (3, 2)],
-        [(0, 3), (1, 3), (2, 3), (3, 3)],
-        [(0, 0), (1, 1), (2, 2), (3, 3)],
-        [(0, 3), (1, 2), (2, 1), (3, 0)]
-    ]
+import sys
+import os
+from tests import *
 
-    def check_winner(symbol):
-        for combination in winning_combinations:
-            if all(board[row][col] == symbol for row, col in combination):
-                return True
-        return False
+def readFile(file_path):
+    lines = []
+    with open(file_path, 'r') as file:
+        #line = file.readline()
+        for line in file:
+            row = list(line.strip())
+            lines.append(row)
+            #lines.append(line.strip())
+           # line = file.readline()
+    return lines
 
-    def count_symbols(symbol):
-        return sum(row.count(symbol) for row in board)
+def gameOver(board):
+    for i in board:
+        for j in i:
+            if j == '.':
+                return False
+    return True
 
-    # Check if X has won
-    if check_winner('X'):
-        return 100
+def gamePop(board):
+    score = [0] * 2
+    for i in board:
+        for j in i:
+            if j == 'X':
+                score[0]+=1
+            if j == 'O':
+                score[1]+=1
+    #print(score)
+    return score
+    
+#def evalPos(board):
+    #score[0] is the score for X
+    #score[1] is the score for O
+    #score = gameScore(board)
+    #if score[0] > score[1]:
+    #    return 1 #if X wins 1, if O wins -1
+    #else:
 
-    # Check if O has won
-    if check_winner('O'):
-        return -100
+def checkFours(board, player):
 
-    # If the board is full, it's a draw
-    if count_symbols('.') == 0:
-        return 0
+    score = 0
 
-    # Calculate the value for the side on move
-    side_on_move = 'X' if count_symbols('X') == count_symbols('O') else 'O'
+    #check for row of 4
+    for row in board:
+        if all(cell == player for cell in row):
+            score += 4
+    #check for column of 4
 
-    return count_symbols(side_on_move) - count_symbols('O')
+    #check for diagonal of four
+    print("THIS IS THE SCORE ", score)
+    return score
 
-def negamax(board):
-    def generate_moves(board):
-        moves = []
-        for i in range(4):
-            for j in range(4):
-                if board[i][j] == '.':
-                    moves.append((i, j))
-        return moves
+def checkThrees(board):
+    return 1
 
-    def make_move(board, move, symbol):
-        i, j = move
-        board[i][j] = symbol
+def checkEdges(board):
+    return 1
 
-    def undo_move(board, move):
-        i, j = move
-        board[i][j] = '.'
 
-    def negamax_search(board, depth, symbol):
-        if depth == 0 or evaluate_position(board) != 0:
-            return evaluate_position(board)
+def evaluate_position(board, player):
 
-        best_value = -float('inf')
-        for move in generate_moves(board):
-            make_move(board, move, symbol)
-            value = -negamax_search(board, depth - 1, 'X' if symbol == 'O' else 'O')
-            undo_move(board, move)
-            best_value = max(best_value, value)
+    score = 0
+    player_mark = ' '
+    if player == -1:
+        player_mark = 'X'
+    elif player == 1:
+        player_mark = 'O'
 
-        return best_value
+    score += checkFours(board, player_mark)
+#    score += checkThrees(board)
+ #   score += checkEdges(board)
+    return score
+
+
+    
+def generate_moves(board):
+    moves = []
+    for row in range(4):
+        for col in range(4):
+            if board[row][col] == '.':
+                moves.append((row, col))  # (row, col) represents the empty cell
+   #print(moves)
+    return moves
+
+def make_move(board, move, player):
+    row = move[0]
+    col = move[1]
+    if board[row][col] == '.':
+        if player == -1:
+            board[row][col] = 'X'
+        if player == 1:
+            board[row][col] = 'O'
+
+        return True  # Move successfully made
+    else:
+        return False  # Move is invalid, as the cell is not empty
+
+def undo_move(board, move):
+    row = move[0]
+    col = move[1]
+    board[row][col] = '.'  # Clear the cell at the specified position
+
+
+def negamax(board, player):
+    if gameOver(board):
+        return evaluate_position(board,player) 
 
     best_value = -float('inf')
-    best_move = None
-    side_on_move = 'X' if count_symbols('X') == count_symbols('O') else 'O'
-
     for move in generate_moves(board):
-        make_move(board, move, side_on_move)
-        value = -negamax_search(board, float('inf'), side_on_move)
+        print("CURRENT OPERATION")
+        print(move)
+        make_move(board, move, player)
+        displayBoard(board)
+        value = -negamax(board, -player)
         undo_move(board, move)
+        best_value = max(best_value, value)
+        print(best_value)
 
-        if value > best_value:
-            best_value = value
-            best_move = move
+    return best_value
 
-    return best_move
 
-def read_position(filename):
-    with open(filename, 'r') as file:
-        lines = file.read().splitlines()
-        return [list(line) for line in lines]
-
-def print_result(side, value):
-    print(f"{side} {value}")
-
-if __name__ == '__main__':
-    import sys
-
+def main():
     if len(sys.argv) != 2:
-        print("input file not found")
+        print("forgor the filename")
         sys.exit(1)
 
-    input_file = sys.argv[1]
-    position = read_position(input_file)
-    best_move = negamax(position)
-    value = evaluate_position(position)
-    side_on_move = 'X' if value > 0 else 'O'
+    board = readFile(sys.argv[1])
+    if not board:
+        print("File is not working")
+        sys.exit(1)
 
-    print_result(side_on_move, value)
+    if board:
+        print("starting board")
+        board = readFile(sys.argv[1])
+        displayBoard(board)
+        print("initial population")
+        pop = gamePop(board)
+
+    player = 0
+    if (pop[0] > pop[1]):
+        player = 1
+    elif (pop[0] < pop[1]):
+        player = -1
+    else:
+        player = -1
+    moves = negamax(board, player)
+
+    print('O', moves)
+    
+
+if __name__ == '__main__':
+    main()
+
