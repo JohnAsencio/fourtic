@@ -29,14 +29,6 @@ def gamePop(board):
             if j == 'O':
                 score[1]+=1
     return score
-    
-#def evalPos(board):
-    #score[0] is the score for X
-    #score[1] is the score for O
-    #score = gameScore(board)
-    #if score[0] > score[1]:
-    #    return 1 #if X wins 1, if O wins -1
-    #else:
 
 def checkFours(board, player):
 
