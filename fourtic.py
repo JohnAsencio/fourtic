@@ -5,12 +5,10 @@ from tests import *
 def readFile(file_path):
     lines = []
     with open(file_path, 'r') as file:
-        #line = file.readline()
         for line in file:
             row = list(line.strip())
             lines.append(row)
-            #lines.append(line.strip())
-           # line = file.readline()
+
     return lines
 
 def gameOver(board):
@@ -43,10 +41,6 @@ def checkFours(board, player):
         if all(board[row][col] == player for row in range(4)):
             score += 6
 
-    #check for diagonal of four
-    if all(board[i][i] == player for i in range(4)) or all(board[i][3 - i] == player for i in range(4)):
-        score += 6
-
     return score
 
 def checkThrees(board, player):
@@ -54,35 +48,69 @@ def checkThrees(board, player):
     score = 0
     #check for 3s horizontally 
     for row in board:
-            if all(cell == player for cell in row): 
-               continue
-            thwee = player*3
-            if thwee in ''.join(row):
-                score += 3
+        if all(cell == player for cell in row): 
+            continue
+        thwee = player*3
+        if thwee in ''.join(row):
+            score += 3
+            print("HORZ")
 
     #check for 3s vertically
+    scoreCols = []
     for col in range(4):
-        column = [board[row][col] for row in range(4)]
-        if column.count(player) == 4:
-            continue  
-        elif column.count(player) == 3:
-            score += 3
+        if all(board[row][col] == player for row in range(4)):
+            continue
+        thwee = player*3
+        test = ''
+        for row in range(4): 
+            test += (board[row][col]) 
+            if thwee in test and col not in scoreCols:
+                print("VERT")
+                score += 3
+                scoreCols.append(col)
+                continue
 
     #check for 3s diagonally
-    for i in range(1, 4):
-        diagonal = [board[j][i + j] for j in range(4 - i)]
+    '''for i in range(4):
+        test = player*3
+        diagonal = ''.join(board[j][i + j] for j in range(4 - i))
+        print(diagonal)
         if diagonal.count(player) == 4:
             continue 
-        if diagonal.count(player) == 3:
+        if test in diagonal:
+            print('dia', diagonal)
             score += 3
 
     # Check the other diagonal (from top-right to bottom-left)
-        other_diagonal = [board[j][3 - i - j] for j in range(4 - i)]
+        other_diagonal = ''.join(board[j][3 - i - j] for j in range(4-i))
+        #print(other_diagonal)
+        #print(test)
         if other_diagonal.count(player) == 4:
             continue
-        if other_diagonal.count(player) == 3:
-            score += 3
+        if test in other_diagonal:
+            print("LAST",other_diagonal)
+            score += 3'''
+    
+    #checking for the diagonals also includes checking the fours diagonals
+    diaCords = [[(0,0), (1,1), (2,2), (3,3)],[(0,1), (1,2), (2,3)],
+                [(1,0),(2,1), (3,2)],[(0,3), (1,2), (2,1), (3,0)],
+                [(1,3),(2,2), (3,1)],[(0,2), (1,1), (2,0)]]
+    
+    threeDia = player*3
+    fourDia = player*4
 
+    for dia in diaCords:
+        test = ''
+        for row, col in dia:
+            test += board[row][col] 
+        if len(test) == 4:
+           if fourDia in test:
+            score += 6
+           elif threeDia in test:
+               score += 3
+        elif threeDia in test:
+            score += 3
+    
     return score
 
 def checkEdges(board, player):
@@ -119,9 +147,7 @@ def evaluate_position(board, player):
     Oscore += checkThrees(board, O_mark)
     Oscore += checkEdges(board, O_mark)
     print("Opponent", O_mark, "Score:", Oscore)
-    return abs(Pscore-Oscore)
-
-
+    return Pscore-Oscore
     
 def generate_moves(board):
     moves = []
@@ -129,7 +155,6 @@ def generate_moves(board):
         for col in range(4):
             if board[row][col] == '.':
                 moves.append((row, col))  
-   #print(moves)
     return moves
 
 def make_move(board, move, player):
