@@ -1,6 +1,6 @@
 import sys
 import os
-from tests import *
+#from tests import *
 
 def readFile(file_path):
     lines = []
@@ -53,7 +53,6 @@ def checkThrees(board, player):
         thwee = player*3
         if thwee in ''.join(row):
             score += 3
-            print("HORZ")
 
     #check for 3s vertically
     scoreCols = []
@@ -65,32 +64,10 @@ def checkThrees(board, player):
         for row in range(4): 
             test += (board[row][col]) 
             if thwee in test and col not in scoreCols:
-                print("VERT")
                 score += 3
                 scoreCols.append(col)
                 continue
 
-    #check for 3s diagonally
-    '''for i in range(4):
-        test = player*3
-        diagonal = ''.join(board[j][i + j] for j in range(4 - i))
-        print(diagonal)
-        if diagonal.count(player) == 4:
-            continue 
-        if test in diagonal:
-            print('dia', diagonal)
-            score += 3
-
-    # Check the other diagonal (from top-right to bottom-left)
-        other_diagonal = ''.join(board[j][3 - i - j] for j in range(4-i))
-        #print(other_diagonal)
-        #print(test)
-        if other_diagonal.count(player) == 4:
-            continue
-        if test in other_diagonal:
-            print("LAST",other_diagonal)
-            score += 3'''
-    
     #checking for the diagonals also includes checking the fours diagonals
     diaCords = [[(0,0), (1,1), (2,2), (3,3)],[(0,1), (1,2), (2,3)],
                 [(1,0),(2,1), (3,2)],[(0,3), (1,2), (2,1), (3,0)],
@@ -141,12 +118,10 @@ def evaluate_position(board, player):
     Pscore += checkFours(board, player_mark)
     Pscore += checkThrees(board, player_mark)
     Pscore += checkEdges(board, player_mark)
-    print("Player", player_mark, "Score:", Pscore)
     
     Oscore += checkFours(board, O_mark)
     Oscore += checkThrees(board, O_mark)
     Oscore += checkEdges(board, O_mark)
-    print("Opponent", O_mark, "Score:", Oscore)
     return Pscore-Oscore
     
 def generate_moves(board):
@@ -182,10 +157,7 @@ def negamax(board, player):
 
     best_value = -float('inf')
     for move in generate_moves(board):
-        print("CURRENT OPERATION")
-        print(move)
         make_move(board, move, player)
-        displayBoard(board)
         value = -negamax(board, -player)
         undo_move(board, move)
         best_value = max(best_value, value)
@@ -204,12 +176,8 @@ def main():
         sys.exit(1)
 
     if board:
-        print("starting board")
         board = readFile(sys.argv[1])
-        displayBoard(board)
-        print("initial population")
         pop = gamePop(board)
-        print(pop)
 
     player = 0
     if (pop[0] > pop[1]):
@@ -221,10 +189,10 @@ def main():
     else:
         player_mark = 'X'
         player = -1
+
     #-1 is X
     #1 is O
     s = evaluate_position(board, player)
-    #print("starting score", player, s)
 
     moves = negamax(board, player)
 
